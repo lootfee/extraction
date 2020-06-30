@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+            <div id="processedSamplesChart"></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+            <h4>Staffs</h4>
+            <table class="table table-bordered">
+              <thead>
+                <th>Staff name</th>
+                <th>Position</th>
+                <th>Date joined</th>
+              </thead>
+              <tbody>
+                {% for member in members %}
+                <tr>
+                  <td>{{ member.name }}</td>
+                  <td>{{ member.position }}</td>
+                  <td>{{ member.date_joined }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+          <h4>Morning shift</h4>
+          {% for staff in morning_shift %}
+            <div>{{ staff.name }}</div>
+          {% endfor %}
+        </div>
+  
+        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+          <h4>Noon shift</h4>
+          {% for staff in noon_shift %}
+            <div>{{ staff.name }}</div>
+          {% endfor %}
+        </div>
+  
+        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+          <h4>Night shift</h4>
+          {% for staff in night_shift %}
+            <div>{{ staff.name }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      
+    </div>
+    
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+<script type="text/javascript">
+
+google.charts.load('current', {'packages':['corechart']});
+    
+$(window).load(function() {
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Day');
+      data.addColumn('number', 'Morning');
+	  data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
+      data.addColumn('number', 'Noon');
+	  data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
+      data.addColumn('number', 'Night');
+	  data.addColumn({type: 'string', role: 'tooltip', 'p': {'html': true}});
+
+      data.addRows([
+		{% for i in runs_list %}
+				[ '{{ (i['date']) }}',  {{i['Morning']}}, '', {{i['Noon']}}, '', {{i['Night']}}, ''],
+		{% endfor %}
+      ]);
+
+      var options = {
+        title: 'Processed samples per shift',
+        //subtitle: 'in millions of dollars (USD)',
+        titleTextStyle: {
+          color: 'gray', 
+          fontName: 'Monospace', 
+          fontSize: 18,
+        },
+        width: 1000,
+        height: 500,
+        pointsVisible: true,
+        interpolateNulls: true, 
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('processedSamplesChart'));
+      
+      chart.draw(data, options);
+	
+});
+  </script>
+{% endblock %}

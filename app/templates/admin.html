@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<div class="container-fluid">
+    <h1>Hi {{ current_user.name }}!</h1>
+    <div class="row">
+        <div class="col-md-12 col-lg-12 col-12">
+            <div class="col-lg-3 col-md-3 col-12">
+                <h3>Admins</h3>
+                <ol>
+                    {% for admin in admins %}
+                    <li>{{ admin.name }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="col-lg-3 col-md-3 col-12">
+                <h3>Admin requests</h3>
+                <ol>
+                    {% for req in admin_requests %}
+                    <li>{{ req.name }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="col-lg-3 col-md-3 col-12">
+				<h3>Register staffs</h3>
+                {{ wtf.quick_form(staff_reg_form)}}
+            </div>
+            <div class="col-lg-3 col-md-3 col-12">
+				<h3>Processed samples</h3>
+                {{ wtf.quick_form(ps_form)}}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="col-lg-3 col-md-3 col-sm-6 col-12">
+                {{ wtf.quick_form(rs_form)}}
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-12">
+              {{ wtf.quick_form(rsh_form)}}
+          </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-ld-12 col-md-12 col-12">
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Position</th>
+                    <th scope="col">Machine certified</th>
+                    <th scope="col">Date Joined</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for member in members %}
+                  <tr>
+                    <td>{{ member.name }}</td>
+                    <td>{{ member.position }}</td>
+                    <td>{{ member.machine_certified }}</td>
+                    <td>{{ member.date_joined }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-ld-12 col-md-12 col-12">
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Shift</th>
+                    <th scope="col">Quantity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for p in processed_samples %}
+                  <tr>
+                    <td>{{ p.date }}</td>
+                    <td>{{ p.shift }}</td>
+                    <td>{{ p.quantity }}</td>
+                    
+                  </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

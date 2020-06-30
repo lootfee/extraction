@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12 col-lg-12 col-12">
+            <div class="col-lg-4 col-md-4 col-12">
+                <div>
+                    {{ wtf.quick_form(login_form)}}
+                    <span style="float: right;"><a href="{{ url_for('register')}}">Register as admin</a></span>
+                </div>
+            </div>
+        </div>
+            
+    </div>
+    
+</div>
+
+{% endblock %}
