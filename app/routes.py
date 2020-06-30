@@ -272,21 +272,21 @@ def data_uploads():
 		for i in range(1, len(dataset)):
 			retest_query = Retests.query.filter_by(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well']).first()
 			if not retest_query:
-				if dataset.loc[i, 'sample_id'] is not '' or '\\':
-					if dataset.loc[i, 'sample_id'] and dataset.loc[i, 'plate_id'] and dataset.loc[i, 'well'] is not '':
-						if dataset.loc[i, 'fam'] and dataset.loc[i, 'vic'] is not '':
+				if dataset.loc[i, 'sample_id'] != '' or '\\':
+					if dataset.loc[i, 'sample_id'] and dataset.loc[i, 'plate_id'] and dataset.loc[i, 'well'] != '':
+						if dataset.loc[i, 'fam'] and dataset.loc[i, 'vic'] != '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
 							db.session.commit()
-						elif dataset.loc[i, 'fam'] is '' and dataset.loc[i, 'vic'] is not '':
+						elif dataset.loc[i, 'fam'] is '' and dataset.loc[i, 'vic'] != '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
 							db.session.commit()
-						elif dataset.loc[i, 'vic'] is '' and dataset.loc[i, 'fam'] is not '':
+						elif dataset.loc[i, 'vic'] is '' and dataset.loc[i, 'fam'] != '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
 							db.session.commit()
-						elif dataset.loc[i, 'fam'] and dataset.loc[i, 'vic'] is '':
+						elif dataset.loc[i, 'fam'] and dataset.loc[i, 'vic'] == '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
 							db.session.commit()
