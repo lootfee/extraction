@@ -278,11 +278,11 @@ def data_uploads():
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
 							db.session.commit()
-						elif dataset.loc[i, 'fam'] is '' and dataset.loc[i, 'vic'] != '':
+						elif dataset.loc[i, 'fam'] == '' and dataset.loc[i, 'vic'] != '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
 							db.session.commit()
-						elif dataset.loc[i, 'vic'] is '' and dataset.loc[i, 'fam'] != '':
+						elif dataset.loc[i, 'vic'] == '' and dataset.loc[i, 'fam'] != '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
 							db.session.commit()
