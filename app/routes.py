@@ -1,9 +1,9 @@
 from app import app, db
 from flask import render_template, flash, redirect, url_for
 from flask_login import current_user, login_user, logout_user, login_required
-from app.forms import LoginForm, StaffRegistrationForm, AdminRegistrationForm, EditStaffInfoForm, PrcessedSamplesForm, RegisterStationsForm, RegisterShiftForm, FilterPlateDateForm
+from app.forms import LoginForm, StaffRegistrationForm, AdminRegistrationForm, EditStaffInfoForm, PrcessedSamplesForm, RegisterStationsForm, RegisterShiftForm, FilterPlateDateForm, UploadFileForm
 from app.models import User, Member, ProcessedSamples, Station, Shift, AssignedMemberToStations, AssignedMemberToShift, Retests
-
+import os
 from datetime import date, datetime
 from sqlalchemy.sql import func
 import random
@@ -176,21 +176,29 @@ def register():
 
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
-    if current_user.is_authenticated:
-        return redirect(url_for('admin'))
-    login_form = LoginForm()
-    if login_form.validate_on_submit():
-        user = User.query.filter_by(name=login_form.name.data, verified=True).first()
-        unverified_user = User.query.filter_by(name=login_form.name.data, verified=False).first()
-        if unverified_user:
-            flash('Registration not yet verified.')
-            return redirect(url_for('index'))
-        if user is None or not user.check_password(login_form.password.data):
-            flash('Name not registered or invalid password')
-            return redirect(url_for('admin_login'))
-        login_user(user, remember=login_form.remember_me.data)
-        return redirect(url_for('admin'))
-    return render_template('admin_login.html', title='Admin', login_form=login_form)
+	if current_user.is_authenticated:
+		return redirect(url_for('admin'))
+		
+	login_form = LoginForm()
+	if login_form.validate_on_submit():
+		user1 = User.query.filter_by(id=1, name=login_form.name.data).first()
+		if user1 is None or not user.check_password(login_form.password.data):
+			flash('Name not registered or invalid password')
+			return redirect(url_for('admin_login'))
+		login_user(user1, remember=login_form.remember_me.data)
+		return redirect(url_for('admin'))
+		if not user1:
+			user = User.query.filter_by(name=login_form.name.data, verified=True).first()
+			unverified_user = User.query.filter_by(name=login_form.name.data, verified=False).first()
+			if unverified_user:
+				flash('Registration not yet verified.')
+				return redirect(url_for('index'))
+			if user is None or not user.check_password(login_form.password.data):
+				flash('Name not registered or invalid password')
+				return redirect(url_for('admin_login'))
+			login_user(user, remember=login_form.remember_me.data)
+			return redirect(url_for('admin'))
+	return render_template('admin_login.html', title='Admin', login_form=login_form)
 
 
 @app.route('/logout')
@@ -252,14 +260,47 @@ def admin():
     return render_template('admin.html', title='Admin', staff_reg_form=staff_reg_form, admins=admins, admin_requests=admin_requests, members=members, esi_form=esi_form, ps_form=ps_form, processed_samples=processed_samples, rs_form=rs_form, rsh_form=rsh_form)
 
 
+@app.route('/data_uploads', methods=['GET', 'POST'])
+def data_uploads():
+	form = UploadFileForm()
+	if form.validate_on_submit():
+		#filename = secure_filename(form.fileContents.data.filename)  
+		filestream =  form.file_name.data 
+		filestream.seek(0)#read file without saving
+		names = ['sample_id', 'plate_id', 'well', 'fam', 'vic', 'analyst', 'retest_type', 'reason']
+		dataset = concat((chunk for chunk in read_csv(filestream, names=names, chunksize=5000, keep_default_na=False)))#read_csv(file_loc, chunksize=1000, sep='\n')
+		for i in range(1, len(dataset)):
+			retest_query = Retests.query.filter_by(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well']).first()
+			if not retest_query:
+				if dataset.loc[i, 'sample_id'] is not '' or '\\':
+					if dataset.loc[i, 'sample_id'] and dataset.loc[i, 'plate_id'] and dataset.loc[i, 'well'] is not '':
+						if dataset.loc[i, 'fam'] and dataset.loc[i, 'vic'] is not '':
+							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
+							db.session.add(retests_data)
+							db.session.commit()
+						elif dataset.loc[i, 'fam'] is '' and dataset.loc[i, 'vic'] is not '':
+							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
+							db.session.add(retests_data)
+							db.session.commit()
+						elif dataset.loc[i, 'vic'] is '' and dataset.loc[i, 'fam'] is not '':
+							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
+							db.session.add(retests_data)
+							db.session.commit()
+						elif dataset.loc[i, 'fam'] and dataset.loc[i, 'vic'] is '':
+							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
+							db.session.add(retests_data)
+							db.session.commit()
+	return render_template('data_upload.html', form=form)
+	
+
 @app.route('/retests', methods=['GET', 'POST'])
 def retests():
-	#file_loc = 'C:/MAMP/htdocs/schedule-maker/app/static/retest_april.csv'
-	#names = ['sample_id', 'plate_id', 'well', 'fam', 'vic', 'analyst', 'retest_type', 'reason']
-	#dataset = concat((chunk for chunk in read_csv(file_loc, names=names, chunksize=5000, keep_default_na=False)))#read_csv(file_loc, chunksize=1000, sep='\n')
+	'''file_loc = #C:/MAMP/htdocs/schedule-maker/app/static/retest_april.csv'
+	names = ['sample_id', 'plate_id', 'well', 'fam', 'vic', 'analyst', 'retest_type', 'reason']
+	dataset = concat((chunk for chunk in read_csv(file_loc, names=names, chunksize=5000, keep_default_na=False)))#read_csv(file_loc, chunksize=1000, sep='\n')
 	
 	#print(dataset.loc[52, 'well'])
-	'''for i in range(1, len(dataset)):
+	for i in range(1, len(dataset)):
 		retest_query = Retests.query.filter_by(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well']).first()
 		if not retest_query:
 			if dataset.loc[i, 'sample_id'] is not '' or '\\':
@@ -279,8 +320,8 @@ def retests():
 					elif dataset.loc[i, 'fam'] and dataset.loc[i, 'vic'] is '':
 						retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 						db.session.add(retests_data)
-						db.session.commit()
-	#print(type(sample_id), sample_id, type(plate_id), plate_id, type(well), well, type(fam), fam, type(vic), vic, type(analyst), analyst, type(retest_type), retest_type)'''
+						db.session.commit()'''
+	#print(type(sample_id), sample_id, type(plate_id), plate_id, type(well), well, type(fam), fam, type(vic), vic, type(analyst), analyst, type(retest_type), retest_type)
 	retest_datas = Retests.query.all()
 	sample_ids = [rd.sample_id for rd in retest_datas]
 	plate_ids = [rd.plate_id for rd in retest_datas]
@@ -307,6 +348,8 @@ def retests():
 		return redirect(url_for('retests_plate_date', plate_date=fpd_form.plate_date.data))
 	max_wellcount = max([well_group.well_count for well_group in retests_well_group])
 	return render_template('retests.html', retests_well_group=retests_well_group, max_wellcount=max_wellcount, plate_date_list=plate_date_list, fpd_form=fpd_form, pd_count_list=pd_count_list)
+
+
 	
 
 @app.route('/retests/<plate_date>', methods=['GET', 'POST'])

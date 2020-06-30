@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<div class="container-fluid">
+	<h4>Upload retest data</h4>
+	{{ wtf.quick_form(form) }}
+</div>
+{% endblock %}

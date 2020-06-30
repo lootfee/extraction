@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, DateField, SubmitField, SelectField, PasswordField, BooleanField, IntegerField
+from wtforms import StringField, DateField, SubmitField, SelectField, PasswordField, BooleanField, IntegerField, FileField
 from wtforms.validators import DataRequired, InputRequired, ValidationError, EqualTo
 from app.models import User
 
@@ -56,6 +56,12 @@ class RegisterShiftForm(FlaskForm):
     name = StringField('Shift Name:', validators=[DataRequired()])
     submit = SubmitField('Submit')
 	
+	
 class FilterPlateDateForm(FlaskForm):
 	plate_date = SelectField('Plate date', coerce=str, validators=[InputRequired()])
+	submit = SubmitField('Submit')
+	
+	
+class UploadFileForm(FlaskForm):
+	file_name = FileField('File', validators=[InputRequired()])
 	submit = SubmitField('Submit')
