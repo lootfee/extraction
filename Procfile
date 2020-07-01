@@ -1,1 +1,1 @@
-web: flask db upgrade; gunicorn schedule_maker:app --log-file=-
+web: flask db migrate flask db upgrade; gunicorn schedule_maker:app --log-file=-
