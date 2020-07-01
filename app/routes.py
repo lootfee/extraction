@@ -182,7 +182,7 @@ def admin_login():
 	login_form = LoginForm()
 	if login_form.validate_on_submit():
 		user1 = User.query.filter_by(id=1, name=login_form.name.data).first()
-		if user1 is None or not user.check_password(login_form.password.data):
+		if user1 is None or not user1.check_password(login_form.password.data):
 			flash('Name not registered or invalid password')
 			return redirect(url_for('admin_login'))
 		login_user(user1, remember=login_form.remember_me.data)
