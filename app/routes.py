@@ -337,7 +337,7 @@ def retests():
 		pd_count_list.append({ str(pd): pd_count})
 	#print(pd_count_list)
 		
-	retests_well_group = Retests.query.distinct(Retests.well).all()
+	retests_well_group = Retests.query.group_by(Retests.well).all()#Retests.query.distinct(Retests.well).all()
 	for well_group in retests_well_group:
 		well_group.well_count = Retests.query.filter_by(well=well_group.well).count()
 		#print(well_group.well, well_group.well_count)
