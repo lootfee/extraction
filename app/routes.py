@@ -50,7 +50,6 @@ def index():
 				if p.shift.name == 'Night':
 					r.run['Night'] = p.quantity
 					
-	print(runs_list)
 	#distribute members to each tier i.e based on length of emplyment
 	shifts = Shift.query.all()
 	members = Member.query.order_by(Member.date_joined.asc()).all()
@@ -58,7 +57,7 @@ def index():
 	shift_member_len = 0
 	if len(shifts) != 0 and len(members) != 0:
 		shift_member_len = len(members)//len(shifts)
-
+	
 	i = 0
 	tiers = []
 	for x in range(0, len(shifts)):
@@ -69,22 +68,26 @@ def index():
 		else:
 			member_tier.append(members[i:])
 		tiers.append(*member_tier)
-
+	
 	#distribute members per tier to each shift
 	morning_shift = []
 	noon_shift = []
 	night_shift = []
 
+	shift_staff_len = 1
+	if shift_member_len//len(tiers) > 1:
+		shift_staff_len = shift_member_len//len(tiers)
 	# morning shift
 	for tier in tiers:
-		shift_staff = random.sample(tier, shift_member_len//len(tiers))
+		shift_staff = random.sample(tier, shift_staff_len)
 		'''for r_staff in shift_staff:
 			r_staff_index = tier.index(r_staff)
 			tier.pop(r_staff_index)'''
 		
 		morning_shift.append(shift_staff)
+	
 	morning_shift = [staff for sublist in morning_shift for staff in sublist]
-
+	
 	# noon shift
 	for tier in tiers:
 		for r_staff in morning_shift:
@@ -93,7 +96,8 @@ def index():
 				tier.pop(r_staff_index)
 			except ValueError:
 				pass
-		shift_staff = random.sample(tier, shift_member_len//len(tiers))
+		
+		shift_staff = random.sample(tier, shift_staff_len)
 
 		noon_shift.append(shift_staff)
 	noon_shift = [staff for sublist in noon_shift for staff in sublist]
@@ -113,11 +117,15 @@ def index():
 				tier.pop(r_staff_index)
 			except ValueError:
 				pass
-		shift_staff = random.sample(tier, shift_member_len//len(tiers))
-
+		if len(tier) < shift_staff_len:
+			shift_staff = random.sample(tier, len(tier))
+		else:
+			shift_staff = random.sample(tier, shift_staff_len)
+		
 		night_shift.append(shift_staff)
 	night_shift = [staff for sublist in night_shift for staff in sublist]
 
+	
 
 	'''distributed_tiers = []
 	j = 0
