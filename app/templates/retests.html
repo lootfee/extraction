@@ -4,16 +4,16 @@
 {% block app_content %}
 <div class="container-fluid">
     <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+        <div class="col">
 			<h3>Heatmap of retests per well</h3>
-			<div class="col-lg-3 col-md-3 col-sm-4 col-3">
+			<div class="col-sm-3">
 				<h4>{{ plate_date_list[0]}} - {{ plate_date_list[-1]}}</h4>
 			</div>
 			<!--div class="col-lg-4 col-md-4 col-sm-4 col-4">
 				{{ wtf.quick_form(fpd_form) }}
 			</div-->
 			
-			<table class="table table-bordered table-hover">
+			<table class="table table-bordered table-hover" style='font-size: 12px'>
 				<tbody>
 					{% for al in 'ABCDEFGH' %}
 					<tr>
@@ -28,7 +28,7 @@
 		</div>
     </div>
 	<div class="row">
-		<div class="col-lg-12 col-md-12 col-sm-12 col-12">
+		<div class="col">
 			<div id="retestCountChart"></div>
 		</div>
 	</div>
@@ -53,11 +53,11 @@ $('#plate_date_select').change(function(){
 	return false;
 });*/
 </script>
-<script type="text/javascript">
+<script>
 
 google.charts.load('current', {'packages':['corechart']});
     
-$(window).load(function() {
+$(window).on('load', function() {
       var data = new google.visualization.DataTable();
       data.addColumn('string', 'Run date');
       data.addColumn('number', 'retest count');

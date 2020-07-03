@@ -32,126 +32,127 @@ from sklearn.svm import SVC'''
 @app.route('/')
 @app.route('/index')
 def index():
-    #processed samples
-    run_dates = ProcessedSamples.query.distinct(ProcessedSamples.process_date).order_by(ProcessedSamples.process_date.asc()).all()#having errors in group_by
-    processed_samples = ProcessedSamples.query.order_by(ProcessedSamples.process_date.asc()).all()
-    runs_list = []
-    for r in run_dates:
-        r.day = r.process_date.strftime('%A')
-        r.run = {'date': str(r.process_date) + ' - ' + r.day }
-        runs_list.append(r.run)
-        for p in processed_samples:
-            if r.process_date == p.process_date:
-                if p.shift.name == 'Morning':
-                    r.run['Morning'] = p.quantity
-                if p.shift.name == 'Noon':
-                    r.run['Noon'] = p.quantity
-                if p.shift.name == 'Night':
-                    r.run['Night'] = p.quantity
+	#processed samples
+	#run_dates = ProcessedSamples.query.distinct(ProcessedSamples.process_date).order_by(ProcessedSamples.process_date.asc()).all()#having errors in group_by
+	run_dates = ProcessedSamples.query.group_by(ProcessedSamples.process_date).order_by(ProcessedSamples.process_date.asc()).all()
+	processed_samples = ProcessedSamples.query.order_by(ProcessedSamples.process_date.asc()).all()
+	runs_list = []
+	for r in run_dates:
+		r.day = r.process_date.strftime('%A')
+		r.run = {'run_date': str(r.process_date) + ' - ' + r.day }
+		runs_list.append(r.run)
+		for p in processed_samples:
+			if r.process_date == p.process_date:
+				if p.shift.name == 'Morning':
+					r.run['Morning'] = p.quantity
+				if p.shift.name == 'Afternoon':
+					r.run['Afternoon'] = p.quantity
+				if p.shift.name == 'Night':
+					r.run['Night'] = p.quantity
+					
+	print(runs_list)
+	#distribute members to each tier i.e based on length of emplyment
+	shifts = Shift.query.all()
+	members = Member.query.order_by(Member.date_joined.asc()).all()
+	# print([(member.name, member.days_employed()) for member in members])
+	shift_member_len = 0
+	if len(shifts) != 0 and len(members) != 0:
+		shift_member_len = len(members)//len(shifts)
 
-    #distribute members to each tier i.e based on length of emplyment
-    shifts = Shift.query.all()
-    members = Member.query.order_by(Member.date_joined.asc()).all()
-    # print([(member.name, member.days_employed()) for member in members])
-    shift_member_len = 0
-    if len(shifts) != 0 and len(members) != 0:
-        shift_member_len = len(members)//len(shifts)
-    
-    i = 0
-    tiers = []
-    for x in range(0, len(shifts)):
-        member_tier = []
-        if x < (len(shifts) - 1):
-            member_tier.append(members[i:i+shift_member_len])
-            i = i+shift_member_len
-        else:
-            member_tier.append(members[i:])
-        tiers.append(*member_tier)
-   
-    #distribute members per tier to each shift
-    morning_shift = []
-    noon_shift = []
-    night_shift = []
-    
-    # morning shift
-    for tier in tiers:
-        shift_staff = random.sample(tier, shift_member_len//len(tiers))
-        '''for r_staff in shift_staff:
-            r_staff_index = tier.index(r_staff)
-            tier.pop(r_staff_index)'''
-        
-        morning_shift.append(shift_staff)
-    morning_shift = [staff for sublist in morning_shift for staff in sublist]
-    
-    # noon shift
-    for tier in tiers:
-        for r_staff in morning_shift:
-            try:
-                r_staff_index = tier.index(r_staff)
-                tier.pop(r_staff_index)
-            except ValueError:
-                pass
-        shift_staff = random.sample(tier, shift_member_len//len(tiers))
+	i = 0
+	tiers = []
+	for x in range(0, len(shifts)):
+		member_tier = []
+		if x < (len(shifts) - 1):
+			member_tier.append(members[i:i+shift_member_len])
+			i = i+shift_member_len
+		else:
+			member_tier.append(members[i:])
+		tiers.append(*member_tier)
 
-        noon_shift.append(shift_staff)
-    noon_shift = [staff for sublist in noon_shift for staff in sublist]
-    
-    # night shift
-    for tier in tiers:
-        for r_staff in morning_shift:
-            try:
-                r_staff_index = tier.index(r_staff)
-                tier.pop(r_staff_index)
-            except ValueError:
-                pass
+	#distribute members per tier to each shift
+	morning_shift = []
+	noon_shift = []
+	night_shift = []
 
-        for r_staff in noon_shift:
-            try:
-                r_staff_index = tier.index(r_staff)
-                tier.pop(r_staff_index)
-            except ValueError:
-                pass
-        shift_staff = random.sample(tier, shift_member_len//len(tiers))
+	# morning shift
+	for tier in tiers:
+		shift_staff = random.sample(tier, shift_member_len//len(tiers))
+		'''for r_staff in shift_staff:
+			r_staff_index = tier.index(r_staff)
+			tier.pop(r_staff_index)'''
+		
+		morning_shift.append(shift_staff)
+	morning_shift = [staff for sublist in morning_shift for staff in sublist]
 
-        night_shift.append(shift_staff)
-    night_shift = [staff for sublist in night_shift for staff in sublist]
+	# noon shift
+	for tier in tiers:
+		for r_staff in morning_shift:
+			try:
+				r_staff_index = tier.index(r_staff)
+				tier.pop(r_staff_index)
+			except ValueError:
+				pass
+		shift_staff = random.sample(tier, shift_member_len//len(tiers))
 
+		noon_shift.append(shift_staff)
+	noon_shift = [staff for sublist in noon_shift for staff in sublist]
 
-    '''distributed_tiers = []
-    j = 0
-    for x in range(shift_member_len):
-        distributed_tiers.append([member[j] for member in tiers] )
-        j += 1
+	# night shift
+	for tier in tiers:
+		for r_staff in morning_shift:
+			try:
+				r_staff_index = tier.index(r_staff)
+				tier.pop(r_staff_index)
+			except ValueError:
+				pass
 
-    morning_shift = []
-    noon_shift = []
-    night_shift = []
-    for x in distributed_tiers:
-        k = 0
-        morning_shift.append(distributed_tiers[k])
-        distributed_tiers.pop(k)
-        k += 1
-        noon_shift.append(distributed_tiers[k])
-        distributed_tiers.pop(k)
-        k += 1
-        night_shift.append(distributed_tiers[k])
-        distributed_tiers.pop(k)'''
-        
-    '''print('morning', morning_shift)
-    print('noom', noon_shift)
-    print('night', night_shift)'''
-        #distributed_members
-    #for member in members:
-    #    print(member.name, member.days_employed())
+		for r_staff in noon_shift:
+			try:
+				r_staff_index = tier.index(r_staff)
+				tier.pop(r_staff_index)
+			except ValueError:
+				pass
+		shift_staff = random.sample(tier, shift_member_len//len(tiers))
 
-    #assign member to stations
-    stations = Station.query.all()
-    for station in stations:
-        for member in members:
-            pass
+		night_shift.append(shift_staff)
+	night_shift = [staff for sublist in night_shift for staff in sublist]
 
 
-    return render_template('index.html', title='Home', runs_list=runs_list, members=members, morning_shift=morning_shift, noon_shift=noon_shift, night_shift=night_shift)
+	'''distributed_tiers = []
+	j = 0
+	for x in range(shift_member_len):
+		distributed_tiers.append([member[j] for member in tiers] )
+		j += 1
+
+	morning_shift = []
+	noon_shift = []
+	night_shift = []
+	for x in distributed_tiers:
+		k = 0
+		morning_shift.append(distributed_tiers[k])
+		distributed_tiers.pop(k)
+		k += 1
+		noon_shift.append(distributed_tiers[k])
+		distributed_tiers.pop(k)
+		k += 1
+		night_shift.append(distributed_tiers[k])
+		distributed_tiers.pop(k)'''
+		
+	'''print('morning', morning_shift)
+	print('noom', noon_shift)
+	print('night', night_shift)'''
+		#distributed_members
+	#for member in members:
+	#    print(member.name, member.days_employed())
+
+	#assign member to stations
+	stations = Station.query.all()
+	for station in stations:
+		for member in members:
+			pass
+
+	return render_template('index.html', title='Home', runs_list=runs_list, members=members, morning_shift=morning_shift, noon_shift=noon_shift, night_shift=night_shift)
 
 
 @app.route('/register', methods=['GET', 'POST'])
