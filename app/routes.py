@@ -190,23 +190,16 @@ def admin_login():
 		
 	login_form = LoginForm()
 	if login_form.validate_on_submit():
-		user1 = User.query.filter_by(id=1, name=login_form.name.data).first()
-		if user1 is None or not user1.check_password(login_form.password.data):
+		user = User.query.filter_by(name=login_form.name.data, verified=True).first()
+		unverified_user = User.query.filter_by(name=login_form.name.data, verified=False).first()
+		if unverified_user:
+			flash('Registration not yet verified.')
+			return redirect(url_for('index'))
+		if user is None or not user.check_password(login_form.password.data):
 			flash('Name not registered or invalid password')
 			return redirect(url_for('admin_login'))
-		login_user(user1, remember=login_form.remember_me.data)
+		login_user(user, remember=login_form.remember_me.data)
 		return redirect(url_for('admin'))
-		if not user1:
-			user = User.query.filter_by(name=login_form.name.data, verified=True).first()
-			unverified_user = User.query.filter_by(name=login_form.name.data, verified=False).first()
-			if unverified_user:
-				flash('Registration not yet verified.')
-				return redirect(url_for('index'))
-			if user is None or not user.check_password(login_form.password.data):
-				flash('Name not registered or invalid password')
-				return redirect(url_for('admin_login'))
-			login_user(user, remember=login_form.remember_me.data)
-			return redirect(url_for('admin'))
 	return render_template('admin_login.html', title='Admin', login_form=login_form)
 
 
@@ -283,22 +276,23 @@ def data_uploads():
 			if not retest_query:
 				if dataset.loc[i, 'sample_id'] != '' or '\\':
 					if dataset.loc[i, 'sample_id'] and dataset.loc[i, 'plate_id'] and dataset.loc[i, 'well'] != '':
-						if dataset.loc[i, 'fam'] and dataset.loc[i, 'vic'] != '':
+						if dataset.loc[i, 'fam'] != '' and dataset.loc[i, 'vic'] != '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
-							db.session.commit()
+							#db.session.commit()
 						elif dataset.loc[i, 'fam'] == '' and dataset.loc[i, 'vic'] != '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
-							db.session.commit()
+							#db.session.commit()
 						elif dataset.loc[i, 'vic'] == '' and dataset.loc[i, 'fam'] != '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
-							db.session.commit()
-						elif dataset.loc[i, 'fam'] and dataset.loc[i, 'vic'] == '':
+							#db.session.commit()
+						elif dataset.loc[i, 'fam'] == '' and dataset.loc[i, 'vic'] == '':
 							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
 							db.session.add(retests_data)
-							db.session.commit()
+							#db.session.commit()
+						db.session.commit()
 	return render_template('data_upload.html', form=form)
 	
 
