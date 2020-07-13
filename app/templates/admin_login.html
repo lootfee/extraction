@@ -4,11 +4,9 @@
 {% block app_content %}
 <div class="container-fluid">
     <div class="row">
-        <div class="col">
-			<div>
-				{{ wtf.quick_form(login_form)}}
-				<span style="float: right;"><a href="{{ url_for('register')}}">Register as admin</a></span>
-			</div>
+        <div class="col-lg-3 col-md-3 co-sm-6 col-xs-12">
+			{{ wtf.quick_form(login_form)}}
+			<span style="float: right;"><a href="{{ url_for('register')}}">Register as admin</a></span>
         </div>
             
     </div>

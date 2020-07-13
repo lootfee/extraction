@@ -269,30 +269,33 @@ def data_uploads():
 		#filename = secure_filename(form.fileContents.data.filename)  
 		filestream =  form.file_name.data 
 		filestream.seek(0)#read file without saving
-		names = ['sample_id', 'plate_id', 'well', 'fam', 'vic', 'analyst', 'retest_type', 'reason']
+		names = ['sample_id', 'plate_id', 'well', 'fam', 'vic', 'analyst', 'retest_type', 'reason', 'remarks', 'admin_comment']
 		dataset = concat((chunk for chunk in read_csv(filestream, names=names, chunksize=5000, keep_default_na=False)))#read_csv(file_loc, chunksize=1000, sep='\n')
 		for i in range(1, len(dataset)):
-			retest_query = Retests.query.filter_by(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well']).first()
-			if not retest_query:
-				if dataset.loc[i, 'sample_id'] != '' or '\\':
-					if dataset.loc[i, 'sample_id'] and dataset.loc[i, 'plate_id'] and dataset.loc[i, 'well'] != '':
-						if dataset.loc[i, 'fam'] != '' and dataset.loc[i, 'vic'] != '':
-							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
-							db.session.add(retests_data)
-							#db.session.commit()
-						elif dataset.loc[i, 'fam'] == '' and dataset.loc[i, 'vic'] != '':
-							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
-							db.session.add(retests_data)
-							#db.session.commit()
-						elif dataset.loc[i, 'vic'] == '' and dataset.loc[i, 'fam'] != '':
-							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
-							db.session.add(retests_data)
-							#db.session.commit()
-						elif dataset.loc[i, 'fam'] == '' and dataset.loc[i, 'vic'] == '':
-							retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'])
-							db.session.add(retests_data)
-							#db.session.commit()
-						db.session.commit()
+			try:
+				if dataset.loc[i, 'sample_id'] and dataset.loc[i, 'plate_id'] != '' or '\\':
+					retest_query = Retests.query.filter_by(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well']).first()
+					if not retest_query:
+						if dataset.loc[i, 'sample_id'] and dataset.loc[i, 'plate_id'] and dataset.loc[i, 'well'] != '':
+							if dataset.loc[i, 'fam'] != '' and dataset.loc[i, 'vic'] != '':
+								retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'], reason=dataset.loc[i, 'reason'], remarks=dataset.loc[i, 'remarks'], admin_comment=dataset.loc[i, 'admin_comment'])
+								db.session.add(retests_data)
+								#db.session.commit()
+							elif dataset.loc[i, 'fam'] == '' and dataset.loc[i, 'vic'] != '':
+								retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], vic=dataset.loc[i, 'vic'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'], reason=dataset.loc[i, 'reason'], remarks=dataset.loc[i, 'remarks'], admin_comment=dataset.loc[i, 'admin_comment'])
+								db.session.add(retests_data)
+								#db.session.commit()
+							elif dataset.loc[i, 'vic'] == '' and dataset.loc[i, 'fam'] != '':
+								retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], fam=dataset.loc[i, 'fam'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'], reason=dataset.loc[i, 'reason'], remarks=dataset.loc[i, 'remarks'], admin_comment=dataset.loc[i, 'admin_comment'])
+								db.session.add(retests_data)
+								#db.session.commit()
+							elif dataset.loc[i, 'fam'] == '' and dataset.loc[i, 'vic'] == '':
+								retests_data = Retests(sample_id=dataset.loc[i, 'sample_id'], plate_id=dataset.loc[i, 'plate_id'], well=dataset.loc[i, 'well'], analyst=dataset.loc[i, 'analyst'], retest_type=dataset.loc[i, 'retest_type'], reason=dataset.loc[i, 'reason'], remarks=dataset.loc[i, 'remarks'], admin_comment=dataset.loc[i, 'admin_comment'])
+								db.session.add(retests_data)
+								#db.session.commit()
+							db.session.commit()
+			except KeyError:
+				pass
 	return render_template('data_upload.html', form=form)
 	
 

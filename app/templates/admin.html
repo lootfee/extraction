@@ -5,7 +5,7 @@
 <div class="container-fluid">
     <h1>Hi {{ current_user.name }}!</h1>
     <div class="row">
-		<div class="col">
+		<div class="col-lg-3 col-md-3 co-sm-6 col-xs-12">
 			<h4>Admins</h4>
 			<ol>
 				{% for admin in admins %}
@@ -13,7 +13,7 @@
 				{% endfor %}
 			</ol>
 		</div>
-		<div class="col">
+		<div class="col-lg-3 col-md-3 co-sm-6 col-xs-12">
 			<h4>Admin requests</h4>
 			<ol>
 				{% for req in admin_requests %}
@@ -21,21 +21,21 @@
 				{% endfor %}
 			</ol>
 		</div>
-		<div class="col">
+		<div class="col-lg-3 col-md-3 co-sm-6 col-xs-12">
 			<h4>Register staffs</h4>
 			{{ wtf.quick_form(staff_reg_form)}}
 		</div>
-		<div class="col">
+		<div class="col-lg-3 col-md-3 co-sm-6 col-xs-12">
 			<h4>Processed samples</h4>
 			{{ wtf.quick_form(ps_form)}}
 		</div>
     </div>
     <div class="row">
-		<div class="col">
+		<div class="col-lg-3 col-md-3 co-sm-6 col-xs-12">
 			<h4>Register stations</h4>
 			{{ wtf.quick_form(rs_form)}}
 		</div>
-		<div class="col">
+		<div class="col-lg-3 col-md-3 co-sm-6 col-xs-12">
 			<h4>Register shifts</h4>
 		  {{ wtf.quick_form(rsh_form)}}
 		</div>
