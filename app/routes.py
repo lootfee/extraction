@@ -75,8 +75,11 @@ def index():
 	night_shift = []
 
 	shift_staff_len = 1
-	if shift_member_len//len(tiers) > 1:
-		shift_staff_len = shift_member_len//len(tiers)
+	try:
+		if shift_member_len//len(tiers) > 1:
+			shift_staff_len = shift_member_len//len(tiers)
+	except ZeroDivisionError:
+		pass
 	# morning shift
 	for tier in tiers:
 		shift_staff = random.sample(tier, shift_staff_len)
