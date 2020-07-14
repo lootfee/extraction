@@ -273,7 +273,7 @@ def data_uploads():
 		filestream =  form.file_name.data 
 		filestream.seek(0)#read file without saving
 		names = ['sample_id', 'plate_id', 'well', 'fam', 'vic', 'analyst', 'retest_type', 'reason', 'remarks', 'admin_comment']
-		dataset = concat((chunk for chunk in read_csv(filestream, names=names, chunksize=5000, keep_default_na=False)))#read_csv(file_loc, chunksize=1000, sep='\n')
+		dataset = concat((chunk for chunk in read_csv(filestream, names=names, chunksize=1000, keep_default_na=False)))#read_csv(file_loc, chunksize=1000, sep='\n')
 		for i in range(1, len(dataset)):
 			try:
 				if dataset.loc[i, 'sample_id'] and dataset.loc[i, 'plate_id'] != '' or '\\':
