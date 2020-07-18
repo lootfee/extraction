@@ -431,7 +431,7 @@ def staff_summary():
 	retest_plate_group = Retests.query.group_by(Retests.plate_id).all()
 	
 	#dispensing 
-	retest_dispense_group = RunSummary1.query.group_by(RunSummary1.sample_dispensing).all()
+	retest_dispense_group = RunSummary1.query.group_by(RunSummary1.sample_dispensing).order_by(RunSummary1.sample_dispensing.asc()).all()
 	for rdg in retest_dispense_group:
 		rdg.dispense_count = RunSummary1.query.filter_by(sample_dispensing=rdg.sample_dispensing).count()
 		rdg.plates = RunSummary1.query.filter_by(sample_dispensing=rdg.sample_dispensing).all()
@@ -444,7 +444,7 @@ def staff_summary():
 		
 		
 	#machine operator
-	retest_operator_group = RunSummary1.query.group_by(RunSummary1.machine_operator).all()
+	retest_operator_group = RunSummary1.query.group_by(RunSummary1.machine_operator).order_by(RunSummary1.machine_operator.asc()).all()
 	for rog in retest_operator_group:
 		rog.processed_count = RunSummary1.query.filter_by(machine_operator=rog.machine_operator).count()
 		rog.plates = RunSummary1.query.filter_by(machine_operator=rog.machine_operator).all()
