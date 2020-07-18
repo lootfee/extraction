@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+			<div >
+				<h4>Dispensing</h4>
+				<table class="table table-bordered table-hover">
+					<thead>
+						<th>Dispensing</th>
+						<th>Plates dispensed</th>
+						<th>Retest plates</th>
+						<th>Retest %</th>
+					</thead>
+					<tbody>
+						{% for rdg in retest_dispense_group %}
+						<tr>
+							<td>{{ rdg.sample_dispensing }}</td>
+							<td>{{ rdg.dispense_count }}</td>
+							<td>{{ rdg.retest_count }}</td>
+							<td>{{ ((rdg.retest_count/rdg.dispense_count)*100)|round(1) }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		
+		<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+			<div >
+				<h4>Machine operator</h4>
+				<table class="table table-bordered table-hover">
+					<thead>
+						<th>Machine operator</th>
+						<th>Plates processed</th>
+						<th>Retest plates</th>
+						<th>Retest %</th>
+					</thead>
+					<tbody>
+						{% for rog in retest_operator_group %}
+						<tr>
+							<td>{{ rog.machine_operator }}</td>
+							<td>{{ rog.processed_count }}</td>
+							<td>{{ rog.retest_count }}</td>
+							<td>{{ ((rog.retest_count/rog.processed_count)*100)|round(1) }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+
+</script>
+{% endblock %}

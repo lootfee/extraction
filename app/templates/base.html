@@ -18,13 +18,19 @@
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 			</button>
-			 <a class="navbar-brand" href="{{url_for('index')}}">Home</a>
+			 <!--a class="navbar-brand" href="{{url_for('index')}}">Home</a-->
 		</div>
 		
 		<div class="collapse navbar-collapse" id="navbarNav">
 		  <ul class="nav navbar-nav">
 			<li class="nav-item">
 			  <a class="nav-link" href="{{ url_for('retests')}}">Retests</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="{{ url_for('staff_summary')}}">Staff Summary</a>
+			</li>
+			<li class="nav-item">
+			  <a class="nav-link" href="{{ url_for('run_summary')}}">Runs Summary</a>
 			</li>
 			<!--li class="nav-item">
 			  <a class="nav-link" href="{{ url_for('admin_login')}}">Admin</a>

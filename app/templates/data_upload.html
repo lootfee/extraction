@@ -3,7 +3,29 @@
 
 {% block app_content %}
 <div class="container-fluid">
-	<h4>Upload retest data</h4>
-	{{ wtf.quick_form(form) }}
+	<div class="row">
+		<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+			<div class="panel panel-info">
+				<div class="panel-heading">
+					<h4 class="panel-title">Upload retest data</h4>
+				</div>
+				<div class="panel-body">
+					{{ wtf.quick_form(form) }}
+				</div>
+				
+			</div>
+		</div>
+		<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+			<div class="panel panel-info">
+				<div class="panel-heading">
+					<h4 class="panel-title">Upload summary data</h4>
+				</div>
+				<div class="panel-body">
+					{{ wtf.quick_form(form2) }}
+				</div>
+				
+			</div>
+		</div>
+	</div>	
 </div>
 {% endblock %}

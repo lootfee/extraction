@@ -62,6 +62,11 @@ class FilterPlateDateForm(FlaskForm):
 	submit = SubmitField('Submit')
 	
 	
-class UploadFileForm(FlaskForm):
-	file_name = FileField('File', validators=[InputRequired()])
-	submit = SubmitField('Submit')
+class RetestFileForm(FlaskForm):
+	retest_file_name = FileField('File', validators=[InputRequired()])
+	rff_submit = SubmitField('Submit')
+	
+	
+class RunSummaryFileForm(FlaskForm):
+	run_summary_file_name = FileField('File', validators=[InputRequired()])
+	rsff_submit = SubmitField('Submit')

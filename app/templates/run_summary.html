@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+			<div>
+				<h4>Retest run times</h4>
+				<table class="table table-bordered table-hover">
+					<thead>
+						<th>Retest plate</th>
+						<th>Dispensing time</th>
+						<th>Dispense to machine loading</th>
+						
+					</thead>
+					<tbody>
+						{% for rtp in retest_plate_group %}
+						{% for rs in rtp.summary %}
+						{% if rs.dispense_time and rs.dispense_to_load_time != '0:00:00' %}
+						<tr>
+							<td>{{ rtp.plate_id }}</td>
+							<td>{{ rs.dispense_time }}</td>
+							<td>{{ rs.dispense_to_load_time }}</td>
+						</tr>
+						{% endif %}
+						{% endfor %}
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+
+</script>
+{% endblock %}

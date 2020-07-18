@@ -1,10 +1,10 @@
 from app import app, db
 from flask import render_template, flash, redirect, url_for
 from flask_login import current_user, login_user, logout_user, login_required
-from app.forms import LoginForm, StaffRegistrationForm, AdminRegistrationForm, EditStaffInfoForm, PrcessedSamplesForm, RegisterStationsForm, RegisterShiftForm, FilterPlateDateForm, UploadFileForm
-from app.models import User, Member, ProcessedSamples, Station, Shift, AssignedMemberToStations, AssignedMemberToShift, Retests
+from app.forms import LoginForm, StaffRegistrationForm, AdminRegistrationForm, EditStaffInfoForm, PrcessedSamplesForm, RegisterStationsForm, RegisterShiftForm, FilterPlateDateForm, RetestFileForm, RunSummaryFileForm
+from app.models import User, Member, ProcessedSamples, Station, Shift, AssignedMemberToStations, AssignedMemberToShift, Retests, RunSummary, RunSummary1
 import os
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from sqlalchemy.sql import func
 import random
 import psycopg2
@@ -267,10 +267,10 @@ def admin():
 
 @app.route('/data_uploads', methods=['GET', 'POST'])
 def data_uploads():
-	form = UploadFileForm()
+	form = RetestFileForm()
 	if form.validate_on_submit():
 		#filename = secure_filename(form.fileContents.data.filename)  
-		filestream =  form.file_name.data 
+		filestream =  form.retest_file_name.data 
 		filestream.seek(0)#read file without saving
 		names = ['sample_id', 'plate_id', 'well', 'fam', 'vic', 'analyst', 'retest_type', 'reason', 'remarks', 'admin_comment']
 		dataset = concat((chunk for chunk in read_csv(filestream, names=names, chunksize=10000, keep_default_na=False)))#read_csv(file_loc, chunksize=1000, sep='\n')
@@ -299,7 +299,70 @@ def data_uploads():
 							db.session.commit()
 			except KeyError:
 				pass
-	return render_template('data_upload.html', form=form)
+				
+	form2 = RunSummaryFileForm()
+	if form2.validate_on_submit():
+		filestream2 =  form2.run_summary_file_name.data 
+		filestream2.seek(0)#read file without saving
+		names2 = ['plate_id', 'shift', 'date', 'blank_lot', 'pc_lot', 'extraction_operator', 'dispensing_start', 'dispensing_end', 'sample_qty', 'extraction_rgt_lot', 'mlb_load_time', 'machine_id', 'plate_load_time', 'qpcr_mix_lot', 'mgisp_tips_lot', 'machine_operator', 'dispensing', 'verifier']
+		dataset2 = concat((chunk for chunk in read_csv(filestream2, names=names2, chunksize=10000, keep_default_na=False)))
+		for i in range(1, len(dataset2)):
+			try:
+				if dataset2.loc[i, 'extraction_operator'] != '':
+					extraction_operator_ = dataset2.loc[i, 'extraction_operator'].replace(' ', '/')
+					extraction_operator = extraction_operator_.split('/')
+					dataset2.loc[i, 'dispensing'] = extraction_operator[0]
+					try:
+						dataset2.loc[i, 'verifier'] = extraction_operator[1]
+					except IndexError:
+						pass
+				
+				if dataset2.loc[i, 'dispensing_start'] != '':	
+					dispensing_start_ = dataset2.loc[i, 'dispensing_start'].replace('A', '').replace('a', '').replace('P', '').replace('p', '').replace('M', '').replace('m', '').replace(' ', '')
+					try:
+						dispensing_start = datetime.strptime(dispensing_start_, '%I:%M')
+						dataset2.loc[i, 'dispensing_start'] = dispensing_start.time()
+					except ValueError:
+						dataset2.loc[i, 'dispensing_start'] = ''
+						
+				if dataset2.loc[i, 'dispensing_end'] != '':	
+					dispensing_end_ = dataset2.loc[i, 'dispensing_end'].replace('A', '').replace('a', '').replace('P', '').replace('p', '').replace('M', '').replace('m', '').replace(' ', '')
+					try:
+						dispensing_end = datetime.strptime(dispensing_end_, '%I:%M')
+						dataset2.loc[i, 'dispensing_end'] = dispensing_end.time()
+					except ValueError:
+						dataset2.loc[i, 'dispensing_end'] = ''		
+						
+				if dataset2.loc[i, 'plate_load_time'] != '':	
+					plate_load_time_ = dataset2.loc[i, 'plate_load_time'].replace('A', '').replace('a', '').replace('P', '').replace('p', '').replace('M', '').replace('m', '').replace(' ', '')
+					try:
+						plate_load_time = datetime.strptime(plate_load_time_, '%I:%M')
+						dataset2.loc[i, 'plate_load_time'] = plate_load_time.time()
+					except ValueError:
+						dataset2.loc[i, 'plate_load_time'] = ''		
+				
+				if dataset2.loc[i, 'mlb_load_time'] != '':	
+					mlb_load_time_ = dataset2.loc[i, 'mlb_load_time'].replace('A', '').replace('a', '').replace('P', '').replace('p', '').replace('M', '').replace('m', '').replace(' ', '')
+					try:
+						mlb_load_time = datetime.strptime(mlb_load_time_, '%I:%M')
+						dataset2.loc[i, 'mlb_load_time'] = mlb_load_time.time()
+					except ValueError:
+						dataset2.loc[i, 'mlb_load_time'] = ''
+				
+				run_summary_query = RunSummary1.query.filter_by(plate_id=dataset2.loc[i, 'plate_id'], shift=dataset2.loc[i, 'shift'], dispensing_start=dataset2.loc[i, 'dispensing_start'], plate_load_time=dataset2.loc[i, 'plate_load_time']).first()
+				if not run_summary_query:
+					try:
+						run_summary = RunSummary1(plate_id=dataset2.loc[i, 'plate_id'], shift=dataset2.loc[i, 'shift'], blank_lot=dataset2.loc[i, 'blank_lot'], pc_lot=dataset2.loc[i, 'pc_lot'], sample_dispensing=dataset2.loc[i, 'dispensing'], verifier=dataset2.loc[i, 'verifier'], dispensing_start=dataset2.loc[i, 'dispensing_start'], dispensing_finish=dataset2.loc[i, 'dispensing_end'], sample_qty=dataset2.loc[i, 'sample_qty'], extraction_rgt_lot=dataset2.loc[i, 'extraction_rgt_lot'], machine_id=dataset2.loc[i, 'machine_id'], plate_load_time=dataset2.loc[i, 'plate_load_time'], mlb_load_time=dataset2.loc[i, 'mlb_load_time'], qpcr_mix_lot=dataset2.loc[i, 'qpcr_mix_lot'], mgisp_tips_lot=dataset2.loc[i, 'mgisp_tips_lot'], machine_operator=dataset2.loc[i, 'machine_operator'])
+						db.session.add(run_summary)
+						db.session.commit()
+					except Exception as error:
+						db.session.rollback()
+					
+			except KeyError:
+				pass
+				
+		print(dataset2[['mlb_load_time']].head(50))
+	return render_template('data_upload.html', form=form, form2=form2)
 	
 
 @app.route('/retests', methods=['GET', 'POST'])
@@ -332,7 +395,8 @@ def retests():
 						db.session.commit()'''
 	#print(type(sample_id), sample_id, type(plate_id), plate_id, type(well), well, type(fam), fam, type(vic), vic, type(analyst), analyst, type(retest_type), retest_type)
 	retest_datas = Retests.query.all()
-	sample_ids = [rd.sample_id for rd in retest_datas]
+	
+	#sample_ids = [rd.sample_id for rd in retest_datas]
 	plate_ids = [rd.plate_id for rd in retest_datas]
 	plate_date = set([pi.split('-', 1)[0] for pi in plate_ids])
 	plate_date_list_ = []
@@ -350,15 +414,70 @@ def retests():
 	for well_group in retests_well_group:
 		well_group.well_count = Retests.query.filter_by(well=well_group.well).count()
 		#print(well_group.well, well_group.well_count)
+		
+	max_wellcount = max([well_group.well_count for well_group in retests_well_group])
+	
 	
 	fpd_form = FilterPlateDateForm()
 	fpd_form.plate_date.choices = [''] + plate_date_list
 	if fpd_form.validate_on_submit():
-		return redirect(url_for('retests_plate_date', plate_date=fpd_form.plate_date.data))
-	max_wellcount = max([well_group.well_count for well_group in retests_well_group])
+		return redirect(url_for('retests_plate_date', plate_date=fpd_form.plate_date.data))	
+	
 	return render_template('retests.html', retests_well_group=retests_well_group, max_wellcount=max_wellcount, plate_date_list=plate_date_list, fpd_form=fpd_form, pd_count_list=pd_count_list)
 
 
+@app.route('/staff_summary', methods=['GET', 'POST'])
+def staff_summary():	
+	retest_plate_group = Retests.query.group_by(Retests.plate_id).all()
+	
+	#dispensing 
+	retest_dispense_group = RunSummary1.query.group_by(RunSummary1.sample_dispensing).all()
+	for rdg in retest_dispense_group:
+		rdg.dispense_count = RunSummary1.query.filter_by(sample_dispensing=rdg.sample_dispensing).count()
+		rdg.plates = RunSummary1.query.filter_by(sample_dispensing=rdg.sample_dispensing).all()
+		
+		rdg.retest_count = 0
+		for rc in rdg.plates:
+			for rd in retest_plate_group:
+				if rc.plate_id == rd.plate_id:
+					rdg.retest_count += 1
+		
+		
+	#machine operator
+	retest_operator_group = RunSummary1.query.group_by(RunSummary1.machine_operator).all()
+	for rog in retest_operator_group:
+		rog.processed_count = RunSummary1.query.filter_by(machine_operator=rog.machine_operator).count()
+		rog.plates = RunSummary1.query.filter_by(machine_operator=rog.machine_operator).all()
+		
+		rog.retest_count = 0
+		for rc in rog.plates:
+			for rd in retest_plate_group:
+				if rc.plate_id == rd.plate_id:
+					rog.retest_count += 1	
+	
+	
+	
+	return render_template('summary.html', retest_dispense_group=retest_dispense_group, retest_operator_group=retest_operator_group)
+
+
+@app.route('/run_summary', methods=['GET', 'POST'])
+def run_summary():	
+	retest_plate_group = Retests.query.group_by(Retests.plate_id).all()
+	#summary_plate_group = RunSummary1.query.group_by(RunSummary1.plate_id).all()
+	
+	#run summary
+	for rtp in retest_plate_group:
+		rtp.summary = RunSummary1.query.filter_by(plate_id=rtp.plate_id).all()
+		for rs in rtp.summary:
+			rs.dispense_time = datetime.combine(date.today(), rs.dispensing_finish) - datetime.combine(date.today(), rs.dispensing_start)
+			#print(type(rs.dispense_time))
+			#if rs.dispense_time < timedelta(0, 0, 0):
+				#rs.dispense_time = datetime.combine(date.today() + timedelta(days=1), rs.dispensing_finish) - datetime.combine(date.today(), rs.dispensing_start)
+			rs.dispense_to_load_time = datetime.combine(date.today(), rs.plate_load_time) - datetime.combine(date.today(), rs.dispensing_finish)
+			#if rs.dispense_to_load_time < timedelta(hours=1):
+			#rs.dispense_to_load_time = datetime.combine(date.today() + timedelta(hours=1), rs.plate_load_time) - datetime.combine(date.today() + timedelta(hours=1), rs.dispensing_finish)
+				
+	return render_template('run_summary.html', retest_plate_group=retest_plate_group)
 	
 
 @app.route('/retests/<plate_date>', methods=['GET', 'POST'])
